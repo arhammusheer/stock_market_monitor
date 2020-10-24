@@ -3,7 +3,7 @@ const options = {}
 const WebSocket = require("ws")
 const finnWS = new WebSocket(process.env.FINNHUB_WS_URL)
 const io = require("socket.io")
-const socket = io.listen(3000)
+const socket = io.listen(process.env.PORT)
 
 var recentPrice = {}
 
@@ -39,6 +39,7 @@ socket.on("connection", socket => {
     socket.emit("A new user hi")
 
     setInterval(() => {
+        console.log(recentPrice)
         socket.emit("price", recentPrice)
     }, 1000);
 })
