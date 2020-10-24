@@ -3,9 +3,18 @@ const options = {}
 const WebSocket = require("ws")
 const finnWS = new WebSocket(process.env.FINNHUB_WS_URL)
 const io = require("socket.io")
-const socket = io.listen(process.env.PORT)
+const http = require("http");
 
+const server = http
+	.createServer(function (req, res) {
+		res.writeHead(200, { "Content-Type": "application/json" });
+		res.write(JSON.stringify(recentPrice));
+		res.end();
+	})
+	.listen(process.env.PORT);
+    
 var recentPrice = {}
+const socket = io(server);
 
 finnWS.addEventListener('open', (e) => {
     finnWS.send(JSON.stringify({'type':'subscribe', 'symbol': 'AAPL'}))
