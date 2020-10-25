@@ -145,6 +145,40 @@ router.get("/wallet", (req, res, next) => {
 	);
 });
 
+router.get("/transaction", (req, res, next) => {
+	if (!req.headers.authorization) {
+		return res.status(401).json({
+			status: "Unauthorized",
+			message: "No token",
+		});
+	}
+	jwt.verify(
+		req.headers.authorization,
+		process.env.JWT_SERVER_SECRET,
+		(err, decoded) => {
+			if (err) {
+				console.log(err);
+				return res.status(401).json({
+					status: "Unauthorized",
+					message: "Invalid or Expired token",
+				});
+			}
+			Transaction.find({ userId: decoded._id }, (err, docs) => {
+				if (err) {
+					return res.status(500).json({
+						status: "failed",
+						message: "DB error",
+					});
+				}
+				return res.status(200).json({
+					status: "success",
+					transactions: docs
+				})
+			})
+		},
+	);
+});
+
 router.post("/transaction", (req, res, next) => {
   if (!req.headers.authorization) {
     return res.status(401).json({
