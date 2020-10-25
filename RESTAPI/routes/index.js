@@ -12,21 +12,48 @@ router.get("/", (req, res, next) => {
 });
 
 router.get("/dashboard", (req, res, next) => {
-	fetch("http://spacecowboys.tech:3001")
-		.then((res) => res.json())
-		.then((json) => {
-			console.log(json);
-			res.status(200).json({
-				status: "success",
-				prices: json,
-			});
-		})
-		.catch((err) => {
-			console.log(err);
-			res.status(500).json({
-				status: "failed",
-			});
+  if (!req.headers.authorization) {
+		return res.status(401).json({
+			status: "Unauthorized",
+			message: "Token not sent",
 		});
+	}
+	jwt.verify(req.headers.authorization, process.env.  JWT_SERVER_SECRET, (err, decoded) => {
+		if (err) {
+			return res.status(401).json({
+				status: "Unauthorized",
+				message: "Invalid or Expired token",
+			});
+		}
+    User.findById(decoded._id, (err, user) => {
+      if (err) {
+        return res.status(401).json({
+					status: "Unauthorized",
+					message: "User not found",
+				});
+      }
+      if (user) {
+        fetch("http://spacecowboys.tech:3001")
+					.then((res) => res.json())
+					.then((json) => {
+						console.log(json);
+						res.status(200).json({
+              status: "success",
+              user: user,
+							prices: json,
+						});
+					})
+					.catch((err) => {
+						console.log(err);
+						res.status(500).json({
+              status: "failed",
+              message:"failed to fetch data",
+              user: user
+						});
+					});
+      }
+    });
+	});
 });
 
 router.post("/login", (req, res, next) => {
