@@ -7,9 +7,9 @@ const Transaction = require("../models/Transaction");
 
 /* GET home page. */
 router.get("/", (req, res, next) => {
-	res.status(200).json({
-		status: "success",
-	});
+  res.status(200).json({
+    status: "success",
+  });
 });
 
 router.get("/dashboard", (req, res, next) => {
@@ -146,58 +146,58 @@ router.get("/wallet", (req, res, next) => {
 });
 
 router.post("/transaction", (req, res, next) => {
-	if (!req.headers.authorization) {
-		return res.status(401).json({
-			status: "Unauthorized",
-			message: "No token",
-		});
-	}
-	jwt.verify(
-		req.headers.authorization,
-		process.env.JWT_SERVER_SECRET,
-		(err, decoded) => {
-			if (err) {
-				console.log(err);
-				return res.status(401).json({
-					status: "Unauthorized",
-					message: "Invalid or Expired token",
-				});
-			}
-			var errorMessage = [];
-			var transaction = req.body;
-			if (!transaction.type)
-				errorMessage.push("Required field: type [buy/sell]");
-			/*if (transaction.type !== "buy" || transaction.type !== "sell")
+  if (!req.headers.authorization) {
+    return res.status(401).json({
+      status: "Unauthorized",
+      message: "No token",
+    });
+  }
+  jwt.verify(
+    req.headers.authorization,
+    process.env.JWT_SERVER_SECRET,
+    (err, decoded) => {
+      if (err) {
+        console.log(err);
+        return res.status(401).json({
+          status: "Unauthorized",
+          message: "Invalid or Expired token",
+        });
+      }
+      var errorMessage = [];
+      var transaction = req.body;
+      if (!transaction.type)
+        errorMessage.push("Required field: type [buy/sell]");
+      /*if (transaction.type !== "buy" || transaction.type !== "sell")
 				errorMessage.push(
 					"Invalid transaction type: Allowed types are buy/sell",
 				);*/
-			if (!transaction.currency)
-				errorMessage.push("Required field: currency (crypto)");
-			if (!transaction.amount) errorMessage.push("Required field: amount");
-			if (errorMessage.length !== 0) {
-				return res.status(400).json({
-					status: "failed",
-					error: errorMessage,
-				});
-			} else {
-				fetch("http://spacecowboys.tech:3001")
-					.then((res) => res.json())
-					.then((json) => {
-						console.log(json);
-						var conversionRate =
-							json[`BINANCE:${transaction.currency.toUpperCase()}USDT`].price;
-						var finalPrice =
-							parseFloat(conversionRate) * parseFloat(transaction.amount);
+      if (!transaction.currency)
+        errorMessage.push("Required field: currency (crypto)");
+      if (!transaction.amount) errorMessage.push("Required field: amount");
+      if (errorMessage.length !== 0) {
+        return res.status(400).json({
+          status: "failed",
+          error: errorMessage,
+        });
+      } else {
+        fetch("http://spacecowboys.tech:3001")
+          .then((res) => res.json())
+          .then((json) => {
+            console.log(json);
+            var conversionRate =
+              json[`BINANCE:${transaction.currency.toUpperCase()}USDT`].price;
+            var finalPrice =
+              parseFloat(conversionRate) * parseFloat(transaction.amount);
 
-						const transac = {
-							type: transaction.type,
-							userId: decoded._id,
-							initialCurrency: "USD",
-							cryptoCurrency: transaction.currency,
-							exchangeRate: conversionRate,
-							amount: transaction.amount,
-							convertedAmount: finalPrice,
-						};
+            const transac = {
+              type: transaction.type,
+              userId: decoded._id,
+              initialCurrency: "USD",
+              cryptoCurrency: transaction.currency,
+              exchangeRate: conversionRate,
+              amount: transaction.amount,
+              convertedAmount: finalPrice,
+            };
 
 						Transaction.create(transac, (err, tran) => {
 							if (err) {

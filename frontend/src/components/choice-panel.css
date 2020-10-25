@@ -1,0 +1,50 @@
+.fade-panel {
+  position: fixed;
+  z-index: 10;
+  width: 100%;
+  top: 0;
+  margin: 1%;
+  display: flex;
+  flex-direction: row;
+  /* background-color: #272727; */
+  /* color: white; */
+  /* -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=50)"; */
+  /* filter: alpha(opacity=50); */
+  /* -moz-opacity: 0.5; */
+  /* -khtml-opacity: 0.5; */
+  opacity: 0.5;
+}
+
+.list-items {
+  flex: 26%;
+  width: 1200px;
+  color: white;
+  margin-top: 20%;
+}
+
+.list-item {
+  color: white;
+  font-size: 27px;
+  cursor: pointer;
+}
+
+.list-item-selected {
+  color: white;
+  font-size: 33px;
+  cursor: pointer;
+}
+
+.list-item:hover {
+  font-size: 30px;
+}
+
+.inside-flex {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stock-list {
+  flex: 65%;
+  color: white;
+}
