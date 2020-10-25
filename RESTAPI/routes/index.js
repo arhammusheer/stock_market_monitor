@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const fetch = require('node-fetch');
+const fetch = require("node-fetch");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
@@ -12,54 +12,144 @@ router.get("/", (req, res, next) => {
 });
 
 router.get("/dashboard", (req, res, next) => {
-  if (!req.headers.authorization) {
+	if (!req.headers.authorization) {
 		return res.status(401).json({
 			status: "Unauthorized",
 			message: "Token not sent",
 		});
 	}
-	jwt.verify(req.headers.authorization, process.env.  JWT_SERVER_SECRET, (err, decoded) => {
-		if (err) {
-			return res.status(401).json({
-				status: "Unauthorized",
-				message: "Invalid or Expired token",
-			});
-		}
-    User.findById(decoded._id, (err, user) => {
-      if (err) {
-        return res.status(401).json({
+	jwt.verify(
+		req.headers.authorization,
+		process.env.JWT_SERVER_SECRET,
+		(err, decoded) => {
+			if (err) {
+				return res.status(401).json({
 					status: "Unauthorized",
-					message: "User not found",
+					message: "Invalid or Expired token",
 				});
-      }
-      if (user) {
-        fetch("http://spacecowboys.tech:3001")
-					.then((res) => res.json())
-					.then((json) => {
-						console.log(json);
-						res.status(200).json({
-              status: "success",
-              user: user,
-							prices: json,
-						});
-					})
-					.catch((err) => {
-						console.log(err);
-						res.status(500).json({
-              status: "failed",
-              message:"failed to fetch data",
-              user: user
-						});
+			}
+			User.findById(decoded._id, (err, user) => {
+				if (err) {
+					return res.status(401).json({
+						status: "Unauthorized",
+						message: "User not found",
 					});
-      }
-    });
-	});
+				}
+				if (user) {
+					fetch("http://spacecowboys.tech:3001")
+						.then((res) => res.json())
+						.then((json) => {
+							console.log(json);
+							res.status(200).json({
+								status: "success",
+								user: user,
+								prices: json,
+							});
+						})
+						.catch((err) => {
+							console.log(err);
+							res.status(500).json({
+								status: "failed",
+								message: "failed to fetch data",
+								user: user,
+							});
+						});
+				}
+			});
+		},
+	);
+});
+
+router.get("/wallet", (req, res, next) => {
+	if (!req.headers.authorization) {
+		return res.status(401).json({
+			status: "Unauthorized",
+			message: "Token not sent",
+		});
+	}
+	jwt.verify(
+		req.headers.authorization,
+		process.env.JWT_SERVER_SECRET,
+		(err, decoded) => {
+			if (err) {
+				return res.status(401).json({
+					status: "Unauthorized",
+					message: "Invalid or Expired token",
+				});
+			}
+			User.findById(decoded._id, (err, user) => {
+				if (err) {
+					return res.status(401).json({
+						status: "Unauthorized",
+						message: "User not found",
+					});
+				}
+				if (user) {
+					if (user.wallet) {
+						if (user.wallet.length == 0) {
+							user.wallet = {
+								USD: 0.0,
+								BTC: 0.0,
+								ETH: 0.0,
+								DASH: 0.0,
+								XZC: 0.0,
+								NEO: 0.0,
+								LTC: 0.0,
+								BCH: 0.0,
+							};
+							User.findByIdAndUpdate(
+								user._id,
+								{ wallet: user.wallet },
+								(err, newUser) => {
+									if (newUser) {
+										return res.status(200).json({
+											status: "success",
+											wallet: newUser.wallet,
+										});
+									}
+								},
+							);
+						} else {
+							return res.status(200).json({
+								status: "success",
+								wallet: user.wallet,
+							});
+						}
+					} else {
+						user.wallet = {
+							USD: 0.0,
+							BTC: 0.0,
+							ETH: 0.0,
+							DASH: 0.0,
+							XZC: 0.0,
+							NEO: 0.0,
+							LTC: 0.0,
+							BCH: 0.0,
+						};
+						User.findByIdAndUpdate(
+							user._id,
+							{ wallet: user.wallet },
+							(err, newUser) => {
+								if (newUser) {
+									return res.status(200).json({
+										status: "success",
+										wallet: newUser.wallet,
+									});
+								}
+							},
+						);
+					}
+					
+				}
+			});
+		},
+	);
 });
 
 router.post("/login", (req, res, next) => {
-  var user = req.body;
-  if (user) {
-    var errorMessage = [];
+	var user = req.body;
+	if (user) {
+		var errorMessage = [];
 		if (!user.googleId) errorMessage.push("Required Field: googleId");
 		if (!user.displayName) errorMessage.push("Required Field: displayName");
 		if (!user.name.givenName)
@@ -105,12 +195,12 @@ router.post("/login", (req, res, next) => {
 				}
 			},
 		);
-  } else {
-    return res.status(400).json({
-      status: "failed",
-      message:"No userdata received"
-    })
-  }
+	} else {
+		return res.status(400).json({
+			status: "failed",
+			message: "No userdata received",
+		});
+	}
 });
 
 module.exports = router;
