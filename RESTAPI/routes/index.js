@@ -3,6 +3,7 @@ const router = express.Router();
 const fetch = require("node-fetch");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const Transaction = require("../models/Transaction");
 
 /* GET home page. */
 router.get("/", (req, res, next) => {
@@ -142,6 +143,100 @@ router.get("/wallet", (req, res, next) => {
 					
 				}
 			});
+		},
+	);
+});
+
+router.post("/transaction", (req, res, next) => {
+	if (!req.headers.authorization) {
+		return res.status(401).json({
+			status: "Unauthorized",
+			message: "No token",
+		});
+	}
+	jwt.verify(
+		req.headers.authorization,
+		process.env.JWT_SERVER_SECRET,
+		(err, decoded) => {
+			if (err) {
+				console.log(err);
+				return res.status(401).json({
+					status: "Unauthorized",
+					message: "Invalid or Expired token",
+				});
+			}
+			var errorMessage = [];
+			var transaction = req.body;
+			if (!transaction.type)
+				errorMessage.push("Required field: type [buy/sell]");
+			/*if (transaction.type !== "buy" || transaction.type !== "sell")
+				errorMessage.push(
+					"Invalid transaction type: Allowed types are buy/sell",
+				);*/
+			if (!transaction.currency)
+				errorMessage.push("Required field: currency (crypto)");
+			if (!transaction.amount) errorMessage.push("Required field: amount");
+			if (errorMessage.length !== 0) {
+				return res.status(400).json({
+					status: "failed",
+					error: errorMessage,
+				});
+			} else {
+				fetch("http://spacecowboys.tech:3001")
+					.then((res) => res.json())
+					.then((json) => {
+						console.log(json);
+						var conversionRate =
+							json[`BINANCE:${transaction.currency.toUpperCase()}USDT`].price;
+						var finalPrice =
+							parseFloat(conversionRate) * parseFloat(transaction.amount);
+
+						const transac = {
+							type: transaction.type,
+							userId: decoded._id,
+							initialCurrency: "USD",
+							cryptoCurrency: transaction.currency,
+							exchangeRate: conversionRate,
+							amount: transaction.amount,
+							convertedAmount: finalPrice,
+						};
+
+						Transaction.create(transac, (err, tran) => {
+							if (err) {
+								return res.status(500).json({
+									status: "failed",
+									message: "DB error",
+								});
+							}
+							User.findById(decoded._id, (err, user) => {
+								if (transaction.type == "buy") {
+									user.wallet.USD = user.wallet.USD - finalPrice;
+									user.wallet[transaction.currency.toUpperCase()] +=
+										transaction.amount;
+								} 
+								if (transaction.type == "sell") {
+									user.wallet.USD = user.wallet.USD + finalPrice;
+									user.wallet[transaction.currency.toUpperCase()] -=
+										transaction.amount;
+								}
+								
+								user.save();
+								return res.json({
+									status: "success",
+									wallet: user.wallet,
+									transaction: tran,
+								});
+							});
+						});
+					})
+					.catch((err) => {
+						console.log(err);
+						res.status(500).json({
+							status: "failed",
+							message: "Transaction failed due to socket error",
+						});
+					});
+			}
 		},
 	);
 });
