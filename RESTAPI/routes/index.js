@@ -57,49 +57,60 @@ router.get("/dashboard", (req, res, next) => {
 });
 
 router.post("/login", (req, res, next) => {
-	var user = req.body;
-	var errorMessage = [];
-	if (!user.googleId) errorMessage.push("Required Field: googleId");
-	if (!user.displayName) errorMessage.push("Required Field: displayName");
-	if (!user.name.givenName) errorMessage.push("Required Field: name.givenName");
-	if (!user.name.familyName)
-		errorMessage.push("Required Field: name.familyName");
-	if (!user.email) errorMessage.push("Required Field: email");
-	if (!user.pictureUrl) errorMessage.push("Required Field: pictureUrl");
-	if (errorMessage.length !== 0) {
-		return res.status(400).json({
-			status: "failed",
-			error: errorMessage,
-		});
-	}
-	User.findOrCreate(
-		{
-			googleId: user.id,
-			displayName: user.displayName,
-			firstName: user.name.givenName,
-			lastName: user.name.familyName,
-			email: user.email,
-			pictureUrl: user.pictureUrl,
-		},
-		(err, user) => {
-			if (user) {
-        Token = jwt.sign({
-          _id: user._id
-        }, process.env.JWT_SERVER_SECRET);
-				return res.status(200).json({
-					status: "success",
-					token: Token,
-				});
-			}
-			if (err) {
-				return res.status(500).json({
-					status: "failed",
-					reason: "A DB error has occured",
-					error: err,
-				});
-			}
-		},
-	);
+  var user = req.body;
+  if (user) {
+    var errorMessage = [];
+		if (!user.googleId) errorMessage.push("Required Field: googleId");
+		if (!user.displayName) errorMessage.push("Required Field: displayName");
+		if (!user.name.givenName)
+			errorMessage.push("Required Field: name.givenName");
+		if (!user.name.familyName)
+			errorMessage.push("Required Field: name.familyName");
+		if (!user.email) errorMessage.push("Required Field: email");
+		if (!user.pictureUrl) errorMessage.push("Required Field: pictureUrl");
+		if (errorMessage.length !== 0) {
+			return res.status(400).json({
+				status: "failed",
+				error: errorMessage,
+			});
+		}
+		User.findOrCreate(
+			{
+				googleId: user.id,
+				displayName: user.displayName,
+				firstName: user.name.givenName,
+				lastName: user.name.familyName,
+				email: user.email,
+				pictureUrl: user.pictureUrl,
+			},
+			(err, user) => {
+				if (user) {
+					Token = jwt.sign(
+						{
+							_id: user._id,
+						},
+						process.env.JWT_SERVER_SECRET,
+					);
+					return res.status(200).json({
+						status: "success",
+						token: Token,
+					});
+				}
+				if (err) {
+					return res.status(500).json({
+						status: "failed",
+						reason: "A DB error has occured",
+						error: err,
+					});
+				}
+			},
+		);
+  } else {
+    return res.status(400).json({
+      status: "failed",
+      message:"No userdata received"
+    })
+  }
 });
 
 module.exports = router;
