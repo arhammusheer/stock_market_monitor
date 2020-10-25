@@ -22,6 +22,22 @@ app.use((req, res, next) => {
 	next();
 });
 
+var mongoose = require("mongoose");
+mongoose.Promise = global.Promise;
+mongoose
+	.connect(process.env.MONGO_URL, {
+		dbName: "spaceCowboys",
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+		useFindAndModify: false,
+	})
+	.then(() => {
+		console.log("DB Connected");
+	})
+	.catch((err) => {
+		console.log(err);
+	});
+
 app.use("/", indexRouter);
 
 expressOasGenerator.handleRequests();
