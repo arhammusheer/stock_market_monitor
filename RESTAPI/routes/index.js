@@ -37,6 +37,19 @@ router.get("/dashboard", (req, res, next) => {
 					});
 				}
 				if (user) {
+					if (!user.wallet) {
+						user.wallet = {
+							USD: 0.0,
+							BTC: 0.0,
+							ETH: 0.0,
+							DASH: 0.0,
+							XZC: 0.0,
+							NEO: 0.0,
+							LTC: 0.0,
+							BCH: 0.0,
+						};
+						user.save();
+					}
 					fetch("http://spacecowboys.tech:3001")
 						.then((res) => res.json())
 						.then((json) => {
@@ -98,18 +111,11 @@ router.get("/wallet", (req, res, next) => {
 								LTC: 0.0,
 								BCH: 0.0,
 							};
-							User.findByIdAndUpdate(
-								user._id,
-								{ wallet: user.wallet },
-								(err, newUser) => {
-									if (newUser) {
-										return res.status(200).json({
-											status: "success",
-											wallet: newUser.wallet,
-										});
-									}
-								},
-							);
+							user.save();
+							return res.status(200).json({
+								status: "success",
+								wallet: user.wallet,
+							});
 						} else {
 							return res.status(200).json({
 								status: "success",
@@ -127,20 +133,12 @@ router.get("/wallet", (req, res, next) => {
 							LTC: 0.0,
 							BCH: 0.0,
 						};
-						User.findByIdAndUpdate(
-							user._id,
-							{ wallet: user.wallet },
-							(err, newUser) => {
-								if (newUser) {
-									return res.status(200).json({
-										status: "success",
-										wallet: newUser.wallet,
-									});
-								}
-							},
-						);
+						user.save();
+						return res.status(200).json({
+							status: "success",
+							wallet: user.wallet,
+						});
 					}
-					
 				}
 			});
 		},
@@ -210,16 +208,17 @@ router.post("/transaction", (req, res, next) => {
 							}
 							User.findById(decoded._id, (err, user) => {
 								if (transaction.type == "buy") {
-									user.wallet.USD = parseFloat(user.wallet.USD) - parseFloat(finalPrice);
-									user.wallet[transaction.currency.toUpperCase()] +=
-										transaction.amount;
-								} 
+									user.wallet.USD -= parseFloat(finalPrice);
+									user.wallet[transaction.currency.toUpperCase()] += parseFloat(
+										transaction.amount,
+									);
+								}
 								if (transaction.type == "sell") {
-									user.wallet.USD = parseFloat(user.wallet.USD) + parseFloat(finalPrice);
+									user.wallet.USD += parseFloat(finalPrice);
 									user.wallet[transaction.currency.toUpperCase()] -=
 										parseFloat(transaction.amount);
 								}
-								
+
 								user.save();
 								return res.json({
 									status: "success",
@@ -270,6 +269,19 @@ router.post("/login", (req, res, next) => {
 			},
 			(err, user) => {
 				if (user) {
+					if (!user.wallet) {
+						user.wallet = {
+							USD: 0.0,
+							BTC: 0.0,
+							ETH: 0.0,
+							DASH: 0.0,
+							XZC: 0.0,
+							NEO: 0.0,
+							LTC: 0.0,
+							BCH: 0.0,
+						};
+						user.save();
+					}
 					Token = jwt.sign(
 						{
 							_id: user._id,
