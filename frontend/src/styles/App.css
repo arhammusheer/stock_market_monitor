@@ -1,0 +1,10 @@
+.main-panel-blur {
+  -webkit-filter: blur(20px);
+  -moz-filter: blur(20px);
+  -o-filter: blur(20px);
+  -ms-filter: blur(20px);
+  filter: url(#blur);
+  filter: blur(20px);
+  -webkit-transition: 2s -webkit-filter linear;
+  -o-transition: 2s -o-filter linear;
+}
