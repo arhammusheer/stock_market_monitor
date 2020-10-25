@@ -210,14 +210,14 @@ router.post("/transaction", (req, res, next) => {
 							}
 							User.findById(decoded._id, (err, user) => {
 								if (transaction.type == "buy") {
-									user.wallet.USD = user.wallet.USD - finalPrice;
+									user.wallet.USD = parseFloat(user.wallet.USD) - parseFloat(finalPrice);
 									user.wallet[transaction.currency.toUpperCase()] +=
 										transaction.amount;
 								} 
 								if (transaction.type == "sell") {
-									user.wallet.USD = user.wallet.USD + finalPrice;
+									user.wallet.USD = parseFloat(user.wallet.USD) + parseFloat(finalPrice);
 									user.wallet[transaction.currency.toUpperCase()] -=
-										transaction.amount;
+										parseFloat(transaction.amount);
 								}
 								
 								user.save();
