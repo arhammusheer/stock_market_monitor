@@ -23,7 +23,7 @@ const JWT_TOKEN =
 
 function fetchData() {
   return new Promise((res, rej) => {
-    fetch("http://spacecowboys.tech:3000/dashboard", {
+    fetch("http://spacecowboys.tech:4000/dashboard", {
       headers: {
         authorization: JWT_TOKEN,
       },

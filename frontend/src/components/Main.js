@@ -2,18 +2,22 @@ import logo from "../logo.svg";
 import mainImage from "../assets/main-page.PNG";
 import "./main.css";
 import { Button, Typography } from "antd";
+import { useAuth0 } from "@auth0/auth0-react";
 const { Title } = Typography;
 
 export const Main = ({ setGetStarted }) => {
+  const { loginWithRedirect } = useAuth0();
   return (
     <div className="main">
       <div className="header">
         <img src={logo} className="App-logo" alt="logo" />
-        <Button size="large" style={{ margin: "1%" }} className="header-button">
+        <Button
+          onClick={() => loginWithRedirect()}
+          size="large"
+          style={{ margin: "1%" }}
+          className="header-button"
+        >
           Sign In
-        </Button>
-        <Button size="large" className="header-button">
-          Register
         </Button>
       </div>
       <div className="body">
